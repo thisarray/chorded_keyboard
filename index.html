@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>chorded keyboard</title>
+  <script src="../jsgame0.js"></script>
+  <style type="text/css" media="screen">
+body {
+  background-color: white;
+  color: black;
+}
+.hidden {
+  display: none;
+}
+#original {
+  margin-left: 1em;
+}
+  </style>
+</head>
+
+<body>
+
+<main>
+<h1>chorded keyboard</h1>
+
+<canvas id="screen">
+The game screen appears here if your browser supports the Canvas API.
+</canvas>
+<section id="controls">
+  <button type="button" id="reset">Reset</button>
+  <button type="button" id="pause">Pause</button>
+</section>
+
+<p>Use SPACE and the home keys "J", "K", "L", ";" or
+<br>SPACE and the home keys "F", "D", "S", "A" for the chords.</p>
+
+<p>Using this to type is completely moot because you have an actual keyboard.</p>
+
+</main>
+
+<script>
+/*
+ * Integer width or height of the boxes in pixels.
+ */
+const BOX_SIZE = 50;
+
+/*
+ * Integer size of the gap in pixels.
+ */
+const GAP_SIZE = 10;
+
+/*
+ * Integer size of the font in pixels.
+ */
+const FONT_SIZE = 30;
+
+/*
+ * Map an integer value to the corresponding string letter.
+ */
+const LETTER_MAP = new Map([
+  [2, ' '],
+  [4, 'E'],
+  [6, 'I'],
+  [8, 'O'],
+  [10, 'C'],
+  [12, 'A'],
+  [14, 'D'],
+  [16, 'S'],
+  [18, 'K'],
+  [20, 'T'],
+  [22, 'R'],
+  [24, 'N'],
+  [26, 'Y'],
+  [28, '.'],
+  [30, 'F'],
+  [32, 'U'],
+  [34, 'H'],
+  [36, 'V'],
+  [38, 'L'],
+  [40, 'Q'],
+  [42, 'Z'],
+  [48, 'G'],
+  [50, 'J'],
+  [52, "'"],
+  [54, 'W'],
+  [56, 'B'],
+  [58, 'X'],
+  [60, 'M'],
+  [62, 'P']
+]);
+
+/*
+ * Map an integer value to the corresponding string number.
+ */
+const NUMBER_MAP = new Map([
+  [2, '1'],
+  [6, '2'],
+  [8, '0'],
+  [14, '3'],
+  [28, '.'],
+  [30, '4'],
+  [32, '6'],
+  [48, '7'],
+  [52, "'"],
+  [56, '8'],
+  [60, '9'],
+  [62, '5']
+]);
+
+/*
+ * Map an integer value to the corresponding string symbol.
+ */
+const SYMBOL_MAP = new Map([
+  [2, ' '],
+  [4, '='],
+  [6, '<'],
+  [10, '['],
+  [12, '@'],
+  [14, '('],
+  [16, '$'],
+  [18, '/'],
+  [20, '*'],
+  [22, '&'],
+  [24, '-'],
+  [26, '?'],
+  [28, '.'],
+  [30, '{'],
+  [34, '#'],
+  [36, '\\'],
+  [40, ']'],
+  [42, '%'],
+  [48, '>'],
+  [50, ';'],
+  [52, "'"],
+  [54, ':'],
+  [56, ')'],
+  [58, '!'],
+  [60, '}'],
+  [62, '+']
+]);
+
+HEIGHT = (BOX_SIZE * 2) + (GAP_SIZE * 3);
+
+var value, boxes;
+
+function reset() {
+  value = 0;
+
+  boxes = [];
+  for (let i = 0; i < 6; i++) {
+    let box = new Rect(GAP_SIZE + ((BOX_SIZE + GAP_SIZE) * i), GAP_SIZE, BOX_SIZE, BOX_SIZE);
+    box.value = Math.pow(2, i);
+    boxes.push(box);
+  }
+}
+
+function draw() {
+  screen.clear('white');
+
+  for (let box of boxes) {
+    if ((value & box.value) > 0) {
+      screen.draw.filled_rect(box, 'red');
+    }
+    screen.draw.rect(box, 'black');
+    screen.draw.text(box.value.toFixed(0), {
+      center: box.center,
+      color: 'black',
+      fontsize: FONT_SIZE
+    });
+  }
+
+  screen.draw.text('Value: ' + value.toFixed(0), {
+    topleft: [GAP_SIZE, GAP_SIZE + BOX_SIZE + GAP_SIZE],
+    color: 'black',
+    fontsize: FONT_SIZE
+  });
+  if (LETTER_MAP.has(value)) {
+    screen.draw.text('Letter: ' + LETTER_MAP.get(value), {
+      topleft: [GAP_SIZE + 200, GAP_SIZE + BOX_SIZE + GAP_SIZE],
+      color: 'black',
+      fontsize: FONT_SIZE
+    });
+  }
+  if (NUMBER_MAP.has(value)) {
+    screen.draw.text('Number: ' + NUMBER_MAP.get(value), {
+      topleft: [GAP_SIZE + 400, GAP_SIZE + BOX_SIZE + GAP_SIZE],
+      color: 'black',
+      fontsize: FONT_SIZE
+    });
+  }
+  if (SYMBOL_MAP.has(value)) {
+    screen.draw.text('Symbol: ' + SYMBOL_MAP.get(value), {
+      topleft: [GAP_SIZE + 600, GAP_SIZE + BOX_SIZE + GAP_SIZE],
+      color: 'black',
+      fontsize: FONT_SIZE
+    });
+  }
+}
+
+/*
+ * Use the home keys for the chords.
+ */
+function on_key_down(key, mask, string) {
+  value = 0;
+  if (keyboard[keys.SPACE]) {
+    value += 2;
+  }
+  if (keyboard[keys.J] || keyboard[keys.F]) {
+    value += 4;
+  }
+  if (keyboard[keys.K] || keyboard[keys.D]) {
+    value += 8;
+  }
+  if (keyboard[keys.L] || keyboard[keys.S]) {
+    value += 16;
+  }
+  if (keyboard[keys.SEMICOLON] || keyboard[keys.A]) {
+    value += 32;
+  }
+}
+
+window.addEventListener('load', (event) => {
+  reset();
+  screen.set_mode('#screen', '#reset', '#pause');
+});
+</script>
+</body>
+
+</html>
